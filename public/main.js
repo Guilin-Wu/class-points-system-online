@@ -43,7 +43,7 @@ const App = {
 
     async loadData() {
         try {
-            const fetchedData = await this.api.fetchApi('/data');
+            const fetchedData = await this.api.getAllData();
             // 将获取的数据合并到 state
             Object.assign(this.state, fetchedData);
             this.render();

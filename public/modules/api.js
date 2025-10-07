@@ -44,6 +44,9 @@ async function fetchApi(endpoint, options = {}) {
     }
 }
 
+export async function getAllData() {
+    return fetchApi('/data');
+}
 // --- Authentication ---
 export async function login(email, password) {
     const data = await fetchApi('/auth/login', {
