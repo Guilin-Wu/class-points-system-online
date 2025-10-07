@@ -4,6 +4,7 @@ import { state, appStatus } from './modules/state.js';
 import { DOMElements } from './modules/dom.js';
 import * as ui from './modules/ui.js';
 import * as api from './modules/api.js';
+// [修复] 导入所有需要的渲染函数
 import { renderApp, renderIndividualRecords, renderBulkGroupEditor, renderPrintStudentSelect } from './modules/render.js';
 import { createHandlers } from './modules/handlers.js';
 import { createPrint } from './modules/print.js';
@@ -17,8 +18,10 @@ const App = {
     ui,
     api,
     
-    // 渲染函数
+    // 主渲染函数
     render: renderApp,
+
+    // [修复] 创建一个对象专门存放需要独立调用的渲染函数
     renderers: {
         renderIndividualRecords,
         renderBulkGroupEditor,

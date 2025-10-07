@@ -19,12 +19,18 @@ export function createHandlers(App) {
             e.currentTarget.classList.add('active');
             App.dom.views.forEach(v => v.classList.remove('active'));
             document.getElementById(`view-${view}`).classList.add('active');
+            
             if (view === 'turntable') {
+                // 调用正确的 initTurntable
                 handlers.initTurntable();
                 App.dom.turntableCostInput.value = App.state.turntableCost;
             }
-            if (view === 'print') { App.render.printStudentSelect(); }
+            if (view === 'print') { 
+                // [修复] 调用挂载在 App.renderers 上的独立渲染函数
+                App.renderers.renderPrintStudentSelect(); 
+            }
         },
+
 
         handleDashboardSortClick: (e) => {
             const btn = e.target.closest('.sort-btn');
@@ -317,21 +323,33 @@ export function createHandlers(App) {
             App.status.currentSpinnerId = null;
         },
 
-        initTurntable: () => {
+initTurntable: () => {
             if (!App.dom.turntableCanvas) return;
+            // 1. 如果旧实例存在，先停止动画
             if (App.status.turntableInstance) {
                 App.status.turntableInstance.stopAnimation(false);
             }
+            // 2. 强制清空画布，这是解决 'kill' 错误和重绘问题的关键
             const canvas = App.dom.turntableCanvas;
             const ctx = canvas.getContext('2d');
             ctx.clearRect(0, 0, canvas.width, canvas.height);
+            // 3. 将旧实例引用设为null
             App.status.turntableInstance = null;
+        
             const prizes = App.state.turntablePrizes.length > 0 ? App.state.turntablePrizes.map(p => ({text: p.text})) : [{ text: '谢谢参与' }];
             const colors = ["#8C236E", "#2C638C", "#3C8C4D", "#D99E3D", "#D9523D", "#8C2323", "#45238C", "#238C80"];
+            
             App.status.turntableInstance = new Winwheel({
-                'canvasId': 'turntable-canvas', 'numSegments': prizes.length, 'responsive': true,
+                'canvasId': 'turntable-canvas', 
+                'numSegments': prizes.length, 
+                'responsive': true,
                 'segments': prizes.map((p, i) => ({ ...p, fillStyle: colors[i % colors.length], textFillStyle: '#ffffff' })),
-                'animation': { 'type': 'spinToStop', 'duration': 8, 'spins': 10, 'callbackFinished': handlers.spinFinished }
+                'animation': { 
+                    'type': 'spinToStop', 
+                    'duration': 8, 
+                    'spins': 10, 
+                    'callbackFinished': handlers.spinFinished 
+                }
             });
         },
 
