@@ -23,6 +23,10 @@ body {
   margin: 0;
   background-color: var(--background-color);
   color: var(--font-color);
+}
+
+/* 新增这个选择器 */
+#app-container {
   display: grid;
   grid-template-areas: "nav header" "nav main";
   grid-template-columns: 250px 1fr;
