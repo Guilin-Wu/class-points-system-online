@@ -394,7 +394,7 @@ initTurntable: () => {
             if (!group) return;
             App.dom.bulkGroupName.innerText = group.name;
             App.dom.bulkGroupIdInput.value = group.id;
-            App.render.bulkGroupEditor(groupId);
+            App.renderers.renderBulkGroupEditor(groupId);
             ui.openModal(App.dom.bulkGroupModal);
         },
         openRewardModal: (id = null) => {
@@ -479,7 +479,7 @@ initTurntable: () => {
             const student = App.state.students.find(s => s.id === studentId);
             if (!student) return ui.showNotification('找不到该学生的信息。', 'error');
             App.dom.individualRecordModalTitle.innerText = `【${student.name}】的积分记录`;
-            App.render.individualRecords(studentId); // This still calls a render function directly, which is fine for modals
+            App.renderers.renderIndividualRecords(studentId); // This still calls a render function directly, which is fine for modals
             ui.openModal(App.dom.individualRecordModal);
         },
     };
