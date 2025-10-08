@@ -1,20 +1,12 @@
-// database.js (最终修复完整版)
+// database.js (最终 PostgreSQL & 多用户准备版)
 const { Pool } = require('pg');
-const { parse } = require('pg-connection-string');
 
-// 1. 解析 Render 提供的 DATABASE_URL 环境变量
-const dbConfig = parse(process.env.DATABASE_URL || '');
-
-// 2. 创建一个新的连接池配置
 const pool = new Pool({
-    ...dbConfig, // 将解析出的 user, password, database, port 等应用到配置中
+    connectionString: process.env.DATABASE_URL,
+    // 在 Render 等平台上部署时需要开启 SSL
     ssl: {
-        rejectUnauthorized: false,
-    },
-    // 3. [最终修复] 强制连接时使用 IPv4 协议
-    // 我们明确指定 host，并告知 Node.js 的网络模块使用 family: 4 (IPv4)
-    host: dbConfig.host,
-    family: 4,
+        rejectUnauthorized: false
+    }
 });
 
 // 使用分号分隔多个SQL语句，并逐一执行
