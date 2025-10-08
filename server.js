@@ -345,6 +345,8 @@ apiRouter.delete('/data', async (req, res) => {
 
 // server.js (找到并替换这个接口)
 
+// server.js (找到并替换这个接口)
+
 apiRouter.post('/data/import', async (req, res) => {
     const userId = req.user.userId;
     const data = req.body;
@@ -366,16 +368,7 @@ apiRouter.post('/data/import', async (req, res) => {
         if (data.students) for (const s of data.students) {
             await client.query(
                 `INSERT INTO students (id, name, "group", points, totalearnedpoints, totaldeductions, user_id) VALUES ($1, $2, $3, $4, $5, $6, $7)`,
-                [
-                    s.id, 
-                    s.name, 
-                    s.group, 
-                    s.points,
-                    // [最终修复] 重新加入大小写兼容逻辑
-                    s.totalEarnedPoints || s.totalearnedpoints,
-                    s.totalDeductions || s.totaldeductions,
-                    userId
-                ]
+                [s.id, s.name, s.group, s.points, s.totalearnedpoints || s.totalEarnedPoints, s.totaldeductions || s.totalDeductions, userId]
             );
         }
         if (data.groups) for (const g of data.groups) {
@@ -385,17 +378,16 @@ apiRouter.post('/data/import', async (req, res) => {
             await client.query(`INSERT INTO rewards (id, name, cost, user_id) VALUES ($1, $2, $3, $4)`, [r.id, r.name, r.cost, userId]);
         }
         if (data.records) for (const rec of data.records) {
+            // [最终修复] 在插入 records 时，忽略 id 列，让数据库自动生成
             await client.query(
-                // 在插入 records 时，忽略 id 列，让数据库自动生成
                 `INSERT INTO records (time, studentid, studentname, change, reason, finalpoints, user_id) VALUES ($1, $2, $3, $4, $5, $6, $7)`,
                 [
                     rec.time,
-                    // [最终修复] 重新加入大小写兼容逻辑
-                    rec.studentId || rec.studentid,
-                    rec.studentName || rec.studentname,
+                    rec.studentid || rec.studentId,
+                    rec.studentname || rec.studentName,
                     rec.change, 
                     rec.reason,
-                    rec.finalPoints || rec.finalpoints,
+                    rec.finalpoints || rec.finalPoints,
                     userId
                 ]
             );
