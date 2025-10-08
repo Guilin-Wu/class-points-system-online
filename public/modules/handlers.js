@@ -8,7 +8,7 @@ import * as ui from './ui.js';
  * @returns {object} - 包含所有事件处理器函数的对象
  */
 export function createHandlers(App) {
-    
+
     // --- Handlers Object ---
     const handlers = {
 
@@ -19,15 +19,15 @@ export function createHandlers(App) {
             e.currentTarget.classList.add('active');
             App.dom.views.forEach(v => v.classList.remove('active'));
             document.getElementById(`view-${view}`).classList.add('active');
-            
+
             if (view === 'turntable') {
                 // 调用正确的 initTurntable
                 handlers.initTurntable();
                 App.dom.turntableCostInput.value = App.state.turntableCost;
             }
-            if (view === 'print') { 
+            if (view === 'print') {
                 // [修复] 调用挂载在 App.renderers 上的独立渲染函数
-                App.renderers.renderPrintStudentSelect(); 
+                App.renderers.renderPrintStudentSelect();
             }
         },
 
@@ -71,14 +71,14 @@ export function createHandlers(App) {
             const name = App.dom.studentNameInput.value.trim();
             const group = App.dom.studentGroupSelect.value;
             if (!studentId || !name) return ui.showNotification('ID和姓名不能为空!', 'error');
-            
+
             try {
                 const action = id ? api.updateStudent(id, name, group) : api.addStudent(studentId, name, group);
                 await action;
                 ui.showNotification(id ? '学生信息已更新' : '学生添加成功');
                 ui.closeModal(App.dom.studentModal);
                 await App.loadData();
-            } catch(err) { ui.showNotification(err.message, 'error'); }
+            } catch (err) { ui.showNotification(err.message, 'error'); }
         },
 
         handleGroupFormSubmit: async (e) => {
@@ -92,7 +92,7 @@ export function createHandlers(App) {
                 ui.showNotification(id ? '小组信息已更新' : '小组添加成功');
                 ui.closeModal(App.dom.groupModal);
                 await App.loadData();
-            } catch(err) { ui.showNotification(err.message, 'error'); }
+            } catch (err) { ui.showNotification(err.message, 'error'); }
         },
 
         handleBulkGroupFormSubmit: async (e) => {
@@ -104,9 +104,9 @@ export function createHandlers(App) {
                 ui.showNotification('小组成员已更新！');
                 ui.closeModal(App.dom.bulkGroupModal);
                 await App.loadData();
-            } catch(err) { ui.showNotification(err.message, 'error'); }
+            } catch (err) { ui.showNotification(err.message, 'error'); }
         },
-        
+
         handlePointsFormSubmit: async (e) => {
             e.preventDefault();
             const studentId = App.dom.pointsStudentIdInput.value;
@@ -118,7 +118,7 @@ export function createHandlers(App) {
                 ui.showNotification('积分调整成功');
                 ui.closeModal(App.dom.pointsModal);
                 await App.loadData();
-            } catch(err) { ui.showNotification(err.message, 'error'); }
+            } catch (err) { ui.showNotification(err.message, 'error'); }
         },
 
         handleRewardFormSubmit: async (e) => {
@@ -160,7 +160,7 @@ export function createHandlers(App) {
                 ui.showNotification('已成功为小组操作积分');
                 ui.closeModal(App.dom.groupPointsModal);
                 await App.loadData();
-            } catch(err) { ui.showNotification(err.message, 'error'); }
+            } catch (err) { ui.showNotification(err.message, 'error'); }
         },
 
         handleAllPointsFormSubmit: async (e) => {
@@ -173,7 +173,7 @@ export function createHandlers(App) {
                 ui.showNotification('已成功为全班成员调整积分');
                 ui.closeModal(App.dom.allPointsModal);
                 await App.loadData();
-            } catch(err) { ui.showNotification(err.message, 'error'); }
+            } catch (err) { ui.showNotification(err.message, 'error'); }
         },
 
         // --- Clicks on Dynamic Content ---
@@ -219,7 +219,7 @@ export function createHandlers(App) {
             if (e.target.matches('.bulk-edit-btn')) handlers.openBulkGroupModal(id);
             if (e.target.matches('.edit-btn')) handlers.openGroupModal(id);
             if (e.target.matches('.delete-btn')) {
-                 ui.showConfirm('删除小组会将该小组学生置为未分组，确认删除？', async () => {
+                ui.showConfirm('删除小组会将该小组学生置为未分组，确认删除？', async () => {
                     try {
                         await api.deleteGroup(id);
                         ui.showNotification('小组已删除。');
@@ -241,17 +241,17 @@ export function createHandlers(App) {
                         await api.deleteReward(id);
                         ui.showNotification('奖品已删除');
                         await App.loadData();
-                    } catch(err) { ui.showNotification(err.message, 'error'); }
+                    } catch (err) { ui.showNotification(err.message, 'error'); }
                 });
             }
         },
-        
+
         handleStudentListItemClick: (e, type) => {
             if (e.target.tagName !== 'LI') return;
             const targetList = type === 'unassigned' ? App.dom.assignedStudentsList : App.dom.unassignedStudentsList;
             targetList.appendChild(e.target);
         },
-        
+
         // --- Turntable Logic ---
         handleTurntablePrizeFormSubmit: async (e) => {
             e.preventDefault();
@@ -265,7 +265,7 @@ export function createHandlers(App) {
                 await App.loadData();
                 handlers.initTurntable();
                 ui.showNotification('转盘奖品已更新');
-            } catch(err) { ui.showNotification(err.message, 'error'); }
+            } catch (err) { ui.showNotification(err.message, 'error'); }
         },
 
         handleTurntablePrizeTableClick: (e) => {
@@ -300,7 +300,7 @@ export function createHandlers(App) {
                     App.status.turntableInstance.draw();
                     App.status.turntableInstance.startAnimation();
                 }
-            } catch(err) {
+            } catch (err) {
                 ui.showNotification(err.message, 'error');
                 App.status.currentSpinnerId = null;
             }
@@ -310,7 +310,7 @@ export function createHandlers(App) {
             const sId = App.status.currentSpinnerId;
             if (!sId) return;
             const student = App.state.students.find(s => s.id === sId);
-            if(student) ui.showNotification(`${student.name} 抽中了: ${indicatedSegment.text}`);
+            if (student) ui.showNotification(`${student.name} 抽中了: ${indicatedSegment.text}`);
             if (indicatedSegment.text.includes('+')) {
                 const points = parseInt(indicatedSegment.text);
                 if (!isNaN(points) && points > 0) {
@@ -323,7 +323,7 @@ export function createHandlers(App) {
             App.status.currentSpinnerId = null;
         },
 
-initTurntable: () => {
+        initTurntable: () => {
             if (!App.dom.turntableCanvas) return;
             // 1. 如果旧实例存在，先停止动画
             if (App.status.turntableInstance && App.status.turntableInstance.isSpinning) {
@@ -335,22 +335,52 @@ initTurntable: () => {
             ctx.clearRect(0, 0, canvas.width, canvas.height);
             // 3. 将旧实例引用设为null
             App.status.turntableInstance = null;
-        
-            const prizes = App.state.turntablePrizes.length > 0 ? App.state.turntablePrizes.map(p => ({text: p.text})) : [{ text: '谢谢参与' }];
+
+            const prizes = App.state.turntablePrizes.length > 0 ? App.state.turntablePrizes.map(p => ({ text: p.text })) : [{ text: '谢谢参与' }];
             const colors = ["#8C236E", "#2C638C", "#3C8C4D", "#D99E3D", "#D9523D", "#8C2323", "#45238C", "#238C80"];
-            
+
             App.status.turntableInstance = new Winwheel({
-                'canvasId': 'turntable-canvas', 
-                'numSegments': prizes.length, 
+                'canvasId': 'turntable-canvas',
+                'numSegments': prizes.length,
                 'responsive': true,
                 'segments': prizes.map((p, i) => ({ ...p, fillStyle: colors[i % colors.length], textFillStyle: '#ffffff' })),
-                'animation': { 
-                    'type': 'spinToStop', 
-                    'duration': 8, 
-                    'spins': 10, 
-                    'callbackFinished': handlers.spinFinished 
+                'animation': {
+                    'type': 'spinToStop',
+                    'duration': 8,
+                    'spins': 10,
+                    'callbackFinished': handlers.spinFinished
                 }
             });
+        },
+
+        handleClearPointsData: () => {
+            App.ui.showConfirm(
+                '您确定要清空所有积分数据吗？此操作将重置所有学生的积分并删除所有记录，但会保留学生名单。',
+                async () => {
+                    try {
+                        const result = await App.api.clearPointsData();
+                        App.ui.showNotification(result.message);
+                        await App.loadData();
+                    } catch (err) {
+                        App.ui.showNotification(err.message, 'error');
+                    }
+                }
+            );
+        },
+
+        handleClearAllData: () => {
+            App.ui.showConfirm(
+                '【最高警告】您确定要完全重置班级吗？所有学生、小组、奖品和记录都将被永久删除！',
+                async () => {
+                    try {
+                        const result = await App.api.clearAllData();
+                        App.ui.showNotification(result.message);
+                        await App.loadData();
+                    } catch (err) {
+                        App.ui.showNotification(err.message, 'error');
+                    }
+                }
+            );
         },
 
         // --- Modal Opening Handlers ---
@@ -483,6 +513,6 @@ initTurntable: () => {
             ui.openModal(App.dom.individualRecordModal);
         },
     };
-    
+
     return handlers;
 }

@@ -127,4 +127,8 @@ export const DOMElements = {
     printStudentSelect: document.getElementById('print-student-select'),
     btnPrintSummary: document.getElementById('btn-print-summary'),
     btnPrintDetails: document.getElementById('btn-print-details'),
+
+    // Data Management
+    btnClearPointsData: document.getElementById('btn-clear-points-data'),
+    btnClearAllData: document.getElementById('btn-clear-all-data'),
 };

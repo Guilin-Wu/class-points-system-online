@@ -102,13 +102,51 @@ apiRouter.put('/students/:id', async (req, res) => {
     } catch (err) { res.status(500).json({ error: '数据库操作失败' }); }
 });
 
-apiRouter.delete('/students/:id', async (req, res) => {
+apiRouter.delete('/data/all', async (req, res) => {
     const userId = req.user.userId;
+    const client = await pool.connect();
     try {
-        const result = await pool.query(`DELETE FROM students WHERE id = $1 AND user_id = $2`, [req.params.id, userId]);
-        if (result.rowCount === 0) return res.status(404).json({ error: '未找到该学生' });
-        res.status(200).json({ message: '学生删除成功' });
-    } catch (err) { res.status(500).json({ error: '数据库操作失败' }); }
+        await client.query('BEGIN');
+        const tables = ['records', 'students', 'groups', 'rewards', 'turntablePrizes'];
+        for (const table of tables) {
+            await client.query(`DELETE FROM ${table} WHERE user_id = $1;`, [userId]);
+        }
+        await client.query('COMMIT');
+        res.status(200).json({ message: '所有数据已清空，班级已被重置！' });
+    } catch (err) {
+        await client.query('ROLLBACK');
+        console.error('Error clearing all data:', err);
+        res.status(500).json({ error: '清空所有数据失败' });
+    } finally {
+        client.release();
+    }
+});
+
+// [新增] 接口二：仅清空积分相关数据
+apiRouter.delete('/data/points', async (req, res) => {
+    const userId = req.user.userId;
+    const client = await pool.connect();
+    try {
+        await client.query('BEGIN');
+        // 1. 将所有学生的积分相关字段重置为0
+        await client.query(
+            `UPDATE students SET points = 0, totalearnedpoints = 0, totaldeductions = 0 WHERE user_id = $1`,
+            [userId]
+        );
+        // 2. 删除所有的积分记录
+        await client.query(
+            `DELETE FROM records WHERE user_id = $1`,
+            [userId]
+        );
+        await client.query('COMMIT');
+        res.status(200).json({ message: '所有积分数据已清空！' });
+    } catch (err) {
+        await client.query('ROLLBACK');
+        console.error('Error clearing points data:', err);
+        res.status(500).json({ error: '清空积分数据失败' });
+    } finally {
+        client.release();
+    }
 });
 
 apiRouter.post('/students/:id/points', async (req, res) => {
@@ -321,31 +359,40 @@ apiRouter.delete('/data', async (req, res) => {
 
 // server.js (找到并替换这个接口)
 
-// server.js (找到並替換這個接口)
+// server.js (找到并替换这个接口)
 
 apiRouter.post('/data/import', async (req, res) => {
     const userId = req.user.userId;
     const data = req.body;
     
     if (!data.students || !data.groups || !data.rewards) {
-        return res.status(400).json({ error: '导入数据的格式不正确，缺少必要的字段。' });
+        return res.status(400).json({ error: '导入的数据格式不正确，缺少必要的字段。' });
     }
 
     const client = await pool.connect();
     try {
         await client.query('BEGIN');
         
-        const tablesToClear = ['records', 'students', 'groups', 'rewards', 'turntablePrizes'];
+        const tablesToClear = ['records', 'students', 'groups', 'rewards', 'turntablePrizes', 'settings'];
         for (const table of tablesToClear) {
-            await client.query(`DELETE FROM ${table} WHERE user_id = $1;`, [userId]);
+            // 从 settings 表删除时要指定 key，避免误删
+            if (table === 'settings') {
+                await client.query(`DELETE FROM ${table} WHERE user_id = $1 AND key = 'turntableCost';`, [userId]);
+            } else {
+                await client.query(`DELETE FROM ${table} WHERE user_id = $1;`, [userId]);
+            }
         }
         
         if (data.students) for (const s of data.students) {
             await client.query(
-                // [修復] 使用全小寫的列名來匹配數據庫
                 `INSERT INTO students (id, name, "group", points, totalearnedpoints, totaldeductions, user_id) VALUES ($1, $2, $3, $4, $5, $6, $7)`,
-                // [修復] 從 JSON 中讀取全小寫的鍵
-                [s.id, s.name, s.group, s.points, s.totalearnedpoints, s.totaldeductions, userId]
+                [
+                    s.id, s.name, s.group, s.points,
+                    // [兼容大小写修改]
+                    s.totalEarnedPoints || s.totalearnedpoints,
+                    s.totalDeductions || s.totaldeductions,
+                    userId
+                ]
             );
         }
         if (data.groups) for (const g of data.groups) {
@@ -356,20 +403,26 @@ apiRouter.post('/data/import', async (req, res) => {
         }
         if (data.records) for (const rec of data.records) {
             await client.query(
-                // [修復] 使用全小寫的列名來匹配數據庫
                 `INSERT INTO records (time, studentid, studentname, change, reason, finalpoints, user_id) VALUES ($1, $2, $3, $4, $5, $6, $7)`,
-                // [修復] 從 JSON 中讀取全小寫的鍵
-                [rec.time, rec.studentid, rec.studentname, rec.change, rec.reason, rec.finalpoints, userId]
+                [
+                    rec.time,
+                    // [兼容大小写修改]
+                    rec.studentId || rec.studentid,
+                    rec.studentName || rec.studentname,
+                    rec.change, rec.reason,
+                    rec.finalPoints || rec.finalpoints,
+                    userId
+                ]
             );
         }
         if (data.turntablePrizes) for (const p of data.turntablePrizes) {
             await client.query(`INSERT INTO turntablePrizes (id, text, user_id) VALUES ($1, $2, $3)`, [p.id, p.text, userId]);
         }
         if (data.turntableCost) {
-            const updateResult = await client.query(`UPDATE settings SET value = $1 WHERE key = 'turntableCost' AND user_id = $2`, [data.turntableCost, userId]);
-            if (updateResult.rowCount === 0) {
-                await client.query(`INSERT INTO settings (user_id, key, value) VALUES ($1, 'turntableCost', $2)`, [userId, data.turntableCost]);
-            }
+            await client.query(
+                `INSERT INTO settings (user_id, key, value) VALUES ($1, 'turntableCost', $2) ON CONFLICT (user_id, key) DO UPDATE SET value = $2`,
+                [userId, data.turntableCost]
+            );
         }
 
         await client.query('COMMIT');

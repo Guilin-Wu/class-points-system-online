@@ -123,5 +123,9 @@ export const updateTurntableCost = (cost) => fetchApi('/settings/turntableCost',
 
 // --- Data Management ---
 export const clearAllData = () => fetchApi('/data', { method: 'DELETE' });
+
+export const clearPointsData = () => fetchApi('/data/points', { method: 'DELETE' });
 export const importJsonData = (data) => fetchApi('/data/import', { method: 'POST', body: JSON.stringify(data) });
+// ...
+//export const importJsonData = (data) => fetchApi('/data/import', { method: 'POST', body: JSON.stringify(data) });
 export const importStudentsFromExcel = (students) => fetchApi('/students/import', { method: 'POST', body: JSON.stringify(students) });

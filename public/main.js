@@ -109,6 +109,10 @@ const App = {
         // Print
         this.dom.btnPrintSummary.addEventListener('click', () => this.print.summary());
         this.dom.btnPrintDetails.addEventListener('click', () => this.print.details());
+
+        //Data Management
+        this.dom.btnClearPointsData.addEventListener('click', () => this.handlers.handleClearPointsData());
+        this.dom.btnClearAllData.addEventListener('click', () => this.handlers.handleClearAllData());
     },
 
     // [修复] 拆分出专门用于认证界面的事件监听函数

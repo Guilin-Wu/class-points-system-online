@@ -99,6 +99,7 @@
         <li class="nav-item" data-view="turntable">🎡 幸运大转盘</li>
         <li class="nav-item" data-view="record-management">📑 积分记录</li>
         <li class="nav-item" data-view="print">🖨️ 打印中心</li>
+        <li class="nav-item" data-view="data-management">⚙️ 数据管理</li>
       </ul>
       <div class="nav-footer">
         <button class="btn btn-green" id="btn-export-data">📤 导出数据</button>
@@ -107,42 +108,42 @@
       </div>
     </nav>
 
-  <main id="main-content">
-    <div id="view-dashboard" class="active">
-      <div class="page-header">
-        <h2>班级概览</h2>
-        <div class="header-actions">
+    <main id="main-content">
+      <div id="view-dashboard" class="active">
+        <div class="page-header">
+          <h2>班级概览</h2>
+          <div class="header-actions">
 
-          <div class="search-box"><span>🔍</span><input type="text" id="search-input" placeholder="搜索学生..."></div>
-          <div class="sort-controls">
-            <button class="btn sort-btn" data-sort="points">积分 <span class="sort-indicator"></span></button>
-            <button class="btn sort-btn" data-sort="name">姓名 <span class="sort-indicator"></span></button>
+            <div class="search-box"><span>🔍</span><input type="text" id="search-input" placeholder="搜索学生..."></div>
+            <div class="sort-controls">
+              <button class="btn sort-btn" data-sort="points">积分 <span class="sort-indicator"></span></button>
+              <button class="btn sort-btn" data-sort="name">姓名 <span class="sort-indicator"></span></button>
+            </div>
+            <button class="btn btn-purple" id="btn-add-group-points">✨ 为小组加分</button>
+            <button class="btn btn-green" id="btn-add-all-points">🎉 为全班加分</button>
           </div>
-          <button class="btn btn-purple" id="btn-add-group-points">✨ 为小组加分</button>
-          <button class="btn btn-green" id="btn-add-all-points">🎉 为全班加分</button>
+        </div>
+
+        <div class="dashboard-layout">
+          <div class="student-cards-grid-wrapper">
+            <div class="student-cards-grid" id="student-cards-container">
+            </div>
+          </div>
+
+          <div class="leaderboard-container">
+            <div class="leaderboard-header">
+              <h3 id="leaderboard-title">🏆 积分排行榜</h3>
+            </div>
+            <div class="leaderboard-toggle">
+              <button class="toggle-btn active" data-type="realtime">实时</button>
+              <button class="toggle-btn" data-type="total">累计</button>
+              <button class="toggle-btn" data-type="deduction">扣分</button>
+            </div>
+            <ol id="leaderboard-list">
+            </ol>
+          </div>
         </div>
       </div>
-
-      <div class="dashboard-layout">
-        <div class="student-cards-grid-wrapper">
-          <div class="student-cards-grid" id="student-cards-container">
-          </div>
-        </div>
-
-        <div class="leaderboard-container">
-          <div class="leaderboard-header">
-            <h3 id="leaderboard-title">🏆 积分排行榜</h3>
-          </div>
-          <div class="leaderboard-toggle">
-            <button class="toggle-btn active" data-type="realtime">实时</button>
-            <button class="toggle-btn" data-type="total">累计</button>
-            <button class="toggle-btn" data-type="deduction">扣分</button>
-          </div>
-          <ol id="leaderboard-list">
-          </ol>
-        </div>
-      </div>
-    </div>
 
       <div id="view-group-management">
         <div class="page-header">
@@ -256,6 +257,24 @@
               </select>
               <button class="btn btn-green" id="btn-print-details">📄 打印明细</button>
             </div>
+          </div>
+        </div>
+      </div>
+
+      <div id="view-data-management">
+        <div class="page-header">
+          <h2>数据管理</h2>
+        </div>
+        <div class="print-options-container">
+          <div class="print-option-card">
+            <h3 style="color: var(--red);">清空所有积分数据</h3>
+            <p>此操作将保留您的学生和小组名单，但会将所有学生的当前积分、累计积分、扣分清零，并删除所有的历史积分记录。此操作不可撤销。</p>
+            <button class="btn btn-danger" id="btn-clear-points-data">清空积分数据</button>
+          </div>
+          <div class="print-option-card">
+            <h3 style="color: var(--red);">清空所有数据 (完全重置)</h3>
+            <p>此操作将删除您账户下的**所有**数据，包括全部学生、小组、奖品、积分记录等，相当于重置整个班级。此操作不可撤销。</p>
+            <button class="btn btn-danger" id="btn-clear-all-data">完全重置班级</button>
           </div>
         </div>
       </div>
