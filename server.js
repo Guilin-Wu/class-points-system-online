@@ -67,7 +67,7 @@ apiRouter.post('/students', async (req, res) => {
     const { id, name, group } = req.body;
     if (!id || !name) return res.status(400).json({ error: 'ID和姓名不能为空' });
     try {
-        await pool.query( `INSERT INTO students (id, name, "group", user_id) VALUES ($1, $2, $3, $4)`, [id, name, group || '', userId] );
+        await pool.query(`INSERT INTO students (id, name, "group", user_id) VALUES ($1, $2, $3, $4)`, [id, name, group || '', userId]);
         res.status(201).json({ message: '学生添加成功' });
     } catch (err) {
         if (err.code === '23505') return res.status(409).json({ error: `ID '${id}' 已存在` });
@@ -350,7 +350,7 @@ apiRouter.delete('/data', async (req, res) => {
 apiRouter.post('/data/import', async (req, res) => {
     const userId = req.user.userId;
     const data = req.body;
-    
+
     if (!data.students || !data.groups) {
         return res.status(400).json({ error: '导入的数据格式不正确。' });
     }
@@ -358,12 +358,12 @@ apiRouter.post('/data/import', async (req, res) => {
     const client = await pool.connect();
     try {
         await client.query('BEGIN');
-        
+
         const tablesToClear = ['records', 'students', 'groups', 'rewards', 'turntablePrizes'];
         for (const table of tablesToClear) {
             await client.query(`DELETE FROM ${table} WHERE user_id = $1;`, [userId]);
         }
-        
+
         // --- 插入逻辑 ---
         if (data.students) for (const s of data.students) {
             await client.query(
@@ -385,7 +385,7 @@ apiRouter.post('/data/import', async (req, res) => {
                     rec.time,
                     rec.studentid || rec.studentId,
                     rec.studentname || rec.studentName,
-                    rec.change, 
+                    rec.change,
                     rec.reason,
                     rec.finalpoints || rec.finalPoints,
                     userId
@@ -396,7 +396,7 @@ apiRouter.post('/data/import', async (req, res) => {
             await client.query(`INSERT INTO turntablePrizes (id, text, user_id) VALUES ($1, $2, $3)`, [p.id, p.text, userId]);
         }
         if (data.turntableCost) {
-             await client.query(
+            await client.query(
                 `INSERT INTO settings (user_id, key, value) VALUES ($1, 'turntableCost', $2) ON CONFLICT (user_id, key) DO UPDATE SET value = $2`,
                 [userId, data.turntableCost]
             );
@@ -408,6 +408,64 @@ apiRouter.post('/data/import', async (req, res) => {
         await client.query('ROLLBACK');
         console.error('Import data transaction failed:', err);
         res.status(500).json({ error: '导入数据失败，请检查文件内容和格式。' });
+    } finally {
+        client.release();
+    }
+});
+
+
+
+// [新增] POST /api/students/import-by-name: 通过姓名列表批量导入学生
+apiRouter.post('/students/import-by-name', async (req, res) => {
+    const userId = req.user.userId;
+    const { names } = req.body;
+
+    if (!Array.isArray(names) || names.length === 0) {
+        return res.status(400).json({ error: '提供的姓名列表无效。' });
+    }
+
+    const client = await pool.connect();
+    try {
+        await client.query('BEGIN');
+
+        // 1. 获取当前用户已有的所有学生姓名，用于去重
+        const existingStudentsResult = await client.query(`SELECT name FROM students WHERE user_id = $1`, [userId]);
+        const existingNames = new Set(existingStudentsResult.rows.map(s => s.name));
+
+        const newStudents = [];
+        const timestamp = Date.now();
+
+        // 2. 遍历前端传来的姓名，过滤已存在的，并为新学生生成数据
+        names.forEach((name, index) => {
+            if (!existingNames.has(name)) {
+                newStudents.push({
+                    id: `S${timestamp}-${index}`, // 生成一个唯一的ID
+                    name: name,
+                    userId: userId
+                });
+                existingNames.add(name); // 也添加到Set中，防止列表内自身重复
+            }
+        });
+
+        if (newStudents.length === 0) {
+            return res.status(200).json({ message: '没有新的学生需要导入（可能所有姓名都已存在）。' });
+        }
+
+        // 3. 批量插入新的学生数据
+        for (const student of newStudents) {
+            await client.query(
+                `INSERT INTO students (id, name, "group", user_id) VALUES ($1, $2, '', $3)`,
+                [student.id, student.name, student.userId]
+            );
+        }
+
+        await client.query('COMMIT');
+        res.status(201).json({ message: `成功导入 ${newStudents.length} 名新学生！` });
+
+    } catch (err) {
+        await client.query('ROLLBACK');
+        console.error('Text import failed:', err);
+        res.status(500).json({ error: '导入过程中发生数据库错误。' });
     } finally {
         client.release();
     }
@@ -427,8 +485,8 @@ apiRouter.post('/students/import', async (req, res) => {
         await client.query(`DELETE FROM students WHERE user_id = $1;`, [userId]);
 
         for (const s of students) {
-            await client.query(`INSERT INTO students (id, name, "group", points, totalEarnedPoints, totalDeductions, user_id) VALUES ($1, $2, $3, $4, $5, $6, $7)`, 
-            [s.id, s.name, s.group || '', s.points || 0, s.totalEarnedPoints || s.points || 0, s.totalDeductions || 0, userId]);
+            await client.query(`INSERT INTO students (id, name, "group", points, totalEarnedPoints, totalDeductions, user_id) VALUES ($1, $2, $3, $4, $5, $6, $7)`,
+                [s.id, s.name, s.group || '', s.points || 0, s.totalEarnedPoints || s.points || 0, s.totalDeductions || 0, userId]);
         }
         await client.query('COMMIT');
         res.status(200).json({ message: `成功导入 ${students.length} 名学生！` });

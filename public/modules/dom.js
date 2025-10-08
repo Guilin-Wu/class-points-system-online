@@ -131,4 +131,10 @@ export const DOMElements = {
     // Data Management
     btnClearPointsData: document.getElementById('btn-clear-points-data'),
     btnClearAllData: document.getElementById('btn-clear-all-data'),
+
+    
+    btnOpenTextImport: document.getElementById('btn-open-text-import'),
+    textImportModal: document.getElementById('text-import-modal'),
+    textImportForm: document.getElementById('text-import-form'),
+    textImportArea: document.getElementById('text-import-area'),
 };

@@ -72,6 +72,9 @@ const App = {
 
         // Buttons
         document.getElementById('btn-add-student').addEventListener('click', () => this.handlers.openStudentModal());
+        // [新增] 
+        this.dom.btnOpenTextImport.addEventListener('click', () => this.handlers.openTextImportModal());
+        this.dom.textImportForm.addEventListener('submit', (e) => this.handlers.handleTextImportSubmit(e));
         document.getElementById('btn-add-group').addEventListener('click', () => this.handlers.openGroupModal());
         document.getElementById('btn-add-reward').addEventListener('click', () => this.handlers.openRewardModal());
         document.getElementById('btn-add-group-points').addEventListener('click', () => this.handlers.openGroupPointsModal());

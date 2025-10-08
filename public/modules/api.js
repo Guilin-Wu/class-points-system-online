@@ -76,6 +76,8 @@ export const addStudent = (id, name, group) => fetchApi('/students', { method: '
 export const updateStudent = (id, name, group) => fetchApi(`/students/${id}`, { method: 'PUT', body: JSON.stringify({ name, group }) });
 export const deleteStudent = (id) => fetchApi(`/students/${id}`, { method: 'DELETE' });
 
+export const importStudentsByNames = (names) => fetchApi('/students/import-by-name', { method: 'POST', body: JSON.stringify({ names }) });
+
 // --- Points ---
 export const changePoints = (studentId, delta, reason) => fetchApi(`/students/${studentId}/points`, { method: 'POST', body: JSON.stringify({ delta, reason }) });
 

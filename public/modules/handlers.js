@@ -512,6 +512,38 @@ export function createHandlers(App) {
             App.renderers.renderIndividualRecords(studentId); // This still calls a render function directly, which is fine for modals
             ui.openModal(App.dom.individualRecordModal);
         },
+
+        openTextImportModal: () => {
+            App.dom.textImportArea.value = ''; // 清空上次输入的内容
+            App.ui.openModal(App.dom.textImportModal);
+            App.dom.textImportArea.focus();
+        },
+
+        handleTextImportSubmit: async (e) => {
+            e.preventDefault();
+            const text = App.dom.textImportArea.value;
+
+            // 将文本处理成姓名数组，过滤空行和两端空格
+            const names = text.split(/\r?\n/)
+                .map(name => name.trim())
+                .filter(name => name !== '');
+
+            // 过滤掉在数组内部的重复项
+            const uniqueNames = [...new Set(names)];
+
+            if (uniqueNames.length === 0) {
+                return App.ui.showNotification('请输入至少一个学生姓名。', 'error');
+            }
+
+            try {
+                const result = await App.api.importStudentsByNames(uniqueNames);
+                App.ui.showNotification(result.message);
+                App.ui.closeModal(App.dom.textImportModal);
+                await App.loadData();
+            } catch (err) {
+                App.ui.showNotification(err.message, 'error');
+            }
+        },
     };
 
     return handlers;

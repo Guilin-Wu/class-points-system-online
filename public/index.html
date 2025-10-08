@@ -164,7 +164,11 @@
 
       <div id="view-student-management">
         <div class="page-header">
-          <h2>学生管理</h2><button class="btn btn-primary" id="btn-add-student">＋ 新增学生</button>
+          <h2>学生管理</h2>
+          <div>
+            <button class="btn btn-info" id="btn-open-text-import">＋ 批量导入姓名</button>
+            <button class="btn btn-primary" id="btn-add-student">＋ 新增学生</button>
+          </div>
         </div>
         <table class="styled-table" id="student-table">
           <thead>
@@ -457,6 +461,22 @@
           <label for="spin-student-select">选择学生:</label>
           <select id="spin-student-select" required></select>
           <div class="form-actions"><button type="submit" class="btn btn-primary">确认并抽奖</button></div>
+        </form>
+      </div>
+    </div>
+
+    <div id="text-import-modal" class="modal">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h2>通过文本导入学生</h2>
+          <span class="close-btn">&times;</span>
+        </div>
+        <form id="text-import-form">
+          <label for="text-import-area">学生姓名列表:</label>
+          <textarea id="text-import-area" rows="10" placeholder="请每行输入一个学生姓名。系统会自动过滤空行和重复姓名。"></textarea>
+          <div class="form-actions">
+            <button type="submit" class="btn btn-primary">确认导入</button>
+          </div>
         </form>
       </div>
     </div>
