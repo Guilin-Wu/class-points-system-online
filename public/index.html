@@ -107,37 +107,42 @@
       </div>
     </nav>
 
-    <main id="main-content">
-      <div id="view-dashboard" class="active">
-        <div class="page-header">
-          <h2>班级概览</h2>
-          <div class="header-actions">
-            <div class="search-box"><span>🔍</span><input type="text" id="search-input" placeholder="搜索学生..."></div>
-            <div class="sort-controls">
-              <button class="btn sort-btn" data-sort="points">积分 <span class="sort-indicator"></span></button>
-              <button class="btn sort-btn" data-sort="name">姓名 <span class="sort-indicator"></span></button>
-            </div>
-            <button class="btn btn-purple" id="btn-add-group-points">✨ 为小组加分</button>
-            <button class="btn btn-green" id="btn-add-all-points">🎉 为全班加分</button>
+  <main id="main-content">
+    <div id="view-dashboard" class="active">
+      <div class="page-header">
+        <h2>班级概览</h2>
+        <div class="header-actions">
+
+          <div class="search-box"><span>🔍</span><input type="text" id="search-input" placeholder="搜索学生..."></div>
+          <div class="sort-controls">
+            <button class="btn sort-btn" data-sort="points">积分 <span class="sort-indicator"></span></button>
+            <button class="btn sort-btn" data-sort="name">姓名 <span class="sort-indicator"></span></button>
           </div>
-          <div class="dashboard-layout">
-            <div class="student-cards-grid-wrapper">
-              <div class="student-cards-grid" id="student-cards-container"></div>
-            </div>
-            <div class="leaderboard-container">
-              <div class="leaderboard-header">
-                <h3 id="leaderboard-title">🏆 积分排行榜</h3>
-              </div>
-              <div class="leaderboard-toggle">
-                <button class="toggle-btn active" data-type="realtime">实时</button>
-                <button class="toggle-btn" data-type="total">累计</button>
-                <button class="toggle-btn" data-type="deduction">扣分</button>
-              </div>
-              <ol id="leaderboard-list"></ol>
-            </div>
-          </div>
+          <button class="btn btn-purple" id="btn-add-group-points">✨ 为小组加分</button>
+          <button class="btn btn-green" id="btn-add-all-points">🎉 为全班加分</button>
         </div>
       </div>
+
+      <div class="dashboard-layout">
+        <div class="student-cards-grid-wrapper">
+          <div class="student-cards-grid" id="student-cards-container">
+          </div>
+        </div>
+
+        <div class="leaderboard-container">
+          <div class="leaderboard-header">
+            <h3 id="leaderboard-title">🏆 积分排行榜</h3>
+          </div>
+          <div class="leaderboard-toggle">
+            <button class="toggle-btn active" data-type="realtime">实时</button>
+            <button class="toggle-btn" data-type="total">累计</button>
+            <button class="toggle-btn" data-type="deduction">扣分</button>
+          </div>
+          <ol id="leaderboard-list">
+          </ol>
+        </div>
+      </div>
+    </div>
 
       <div id="view-group-management">
         <div class="page-header">
