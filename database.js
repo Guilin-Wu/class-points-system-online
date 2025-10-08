@@ -1,20 +1,20 @@
 // database.js (最终 PostgreSQL & 多用户准备版)
 const { Pool } = require('pg');
-const net = require('net'); // 引入 Node.js 的 net 模块
+const { parse } = require('pg-connection-string');
+
+// 解析环境变量中的数据库连接字符串
+const dbConfig = parse(process.env.DATABASE_URL || '');
 
 const pool = new Pool({
-    connectionString: process.env.DATABASE_URL,
+    ...dbConfig,
     ssl: {
-        rejectUnauthorized: false
+        rejectUnauthorized: false,
     },
-    // [修复] 将 family 配置放到 stream 选项中
-    stream: new net.Socket(),
-    family: 4
+    // [最终修复] 强制连接使用 IPv4 协议
+    host: dbConfig.host,
+    family: 4,
 });
 
-pool.options.stream.on('connect', () => {
-    pool.options.stream.setNoDelay(true);
-});
 // 使用分号分隔多个SQL语句，并逐一执行
 const setupSchema = [
     `CREATE TABLE IF NOT EXISTS users (
