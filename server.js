@@ -341,42 +341,32 @@ apiRouter.delete('/data', async (req, res) => {
 });
 
 
-// server.js (找到并替换这个接口)
+// server.js (找到并替换这个接
 
-// server.js (找到并替换这个接口)
+a// server.js (找到并替换这个接口)
 
 apiRouter.post('/data/import', async (req, res) => {
     const userId = req.user.userId;
     const data = req.body;
     
-    if (!data.students || !data.groups || !data.rewards) {
-        return res.status(400).json({ error: '导入的数据格式不正确，缺少必要的字段。' });
+    if (!data.students || !data.groups) {
+        return res.status(400).json({ error: '导入的数据格式不正确。' });
     }
 
     const client = await pool.connect();
     try {
         await client.query('BEGIN');
         
-        const tablesToClear = ['records', 'students', 'groups', 'rewards', 'turntablePrizes', 'settings'];
+        const tablesToClear = ['records', 'students', 'groups', 'rewards', 'turntablePrizes'];
         for (const table of tablesToClear) {
-            // 从 settings 表删除时要指定 key，避免误删
-            if (table === 'settings') {
-                await client.query(`DELETE FROM ${table} WHERE user_id = $1 AND key = 'turntableCost';`, [userId]);
-            } else {
-                await client.query(`DELETE FROM ${table} WHERE user_id = $1;`, [userId]);
-            }
+            await client.query(`DELETE FROM ${table} WHERE user_id = $1;`, [userId]);
         }
         
+        // --- 插入逻辑 ---
         if (data.students) for (const s of data.students) {
             await client.query(
                 `INSERT INTO students (id, name, "group", points, totalearnedpoints, totaldeductions, user_id) VALUES ($1, $2, $3, $4, $5, $6, $7)`,
-                [
-                    s.id, s.name, s.group, s.points,
-                    // [兼容大小写修改]
-                    s.totalEarnedPoints || s.totalearnedpoints,
-                    s.totalDeductions || s.totaldeductions,
-                    userId
-                ]
+                [s.id, s.name, s.group, s.points, s.totalearnedpoints || s.totalEarnedPoints, s.totaldeductions || s.totalDeductions, userId]
             );
         }
         if (data.groups) for (const g of data.groups) {
@@ -386,15 +376,16 @@ apiRouter.post('/data/import', async (req, res) => {
             await client.query(`INSERT INTO rewards (id, name, cost, user_id) VALUES ($1, $2, $3, $4)`, [r.id, r.name, r.cost, userId]);
         }
         if (data.records) for (const rec of data.records) {
+            // [最终修复] 在插入 records 时，忽略 id 列，让数据库自动生成
             await client.query(
                 `INSERT INTO records (time, studentid, studentname, change, reason, finalpoints, user_id) VALUES ($1, $2, $3, $4, $5, $6, $7)`,
                 [
                     rec.time,
-                    // [兼容大小写修改]
-                    rec.studentId || rec.studentid,
-                    rec.studentName || rec.studentname,
-                    rec.change, rec.reason,
-                    rec.finalPoints || rec.finalpoints,
+                    rec.studentid || rec.studentId,
+                    rec.studentname || rec.studentName,
+                    rec.change, 
+                    rec.reason,
+                    rec.finalpoints || rec.finalPoints,
                     userId
                 ]
             );
@@ -403,7 +394,7 @@ apiRouter.post('/data/import', async (req, res) => {
             await client.query(`INSERT INTO turntablePrizes (id, text, user_id) VALUES ($1, $2, $3)`, [p.id, p.text, userId]);
         }
         if (data.turntableCost) {
-            await client.query(
+             await client.query(
                 `INSERT INTO settings (user_id, key, value) VALUES ($1, 'turntableCost', $2) ON CONFLICT (user_id, key) DO UPDATE SET value = $2`,
                 [userId, data.turntableCost]
             );
