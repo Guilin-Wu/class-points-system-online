@@ -326,7 +326,7 @@ export function createHandlers(App) {
 initTurntable: () => {
             if (!App.dom.turntableCanvas) return;
             // 1. 如果旧实例存在，先停止动画
-            if (App.status.turntableInstance) {
+            if (App.status.turntableInstance && App.status.turntableInstance.isSpinning) {
                 App.status.turntableInstance.stopAnimation(false);
             }
             // 2. 强制清空画布，这是解决 'kill' 错误和重绘问题的关键
