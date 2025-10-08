@@ -318,12 +318,13 @@ apiRouter.delete('/data', async (req, res) => {
     } finally { client.release(); }
 });
 
-// ... (导入部分代码省略，因为它们比较复杂且与核心业务逻辑不同)
+
+// server.js (找到并替换这个接口)
+
 apiRouter.post('/data/import', async (req, res) => {
     const userId = req.user.userId;
     const data = req.body;
     
-    // 基本的数据验证
     if (!data.students || !data.groups || !data.rewards) {
         return res.status(400).json({ error: '导入的数据格式不正确，缺少必要的字段。' });
     }
@@ -332,26 +333,47 @@ apiRouter.post('/data/import', async (req, res) => {
     try {
         await client.query('BEGIN');
         
-        // 1. 清空当前用户的所有旧数据
         const tablesToClear = ['records', 'students', 'groups', 'rewards', 'turntablePrizes'];
         for (const table of tablesToClear) {
             await client.query(`DELETE FROM ${table} WHERE user_id = $1;`, [userId]);
         }
         
-        // 2. 插入新数据，并绑定到当前用户
-        if (data.students) for (const s of data.students) await client.query(`INSERT INTO students (id, name, "group", points, totalEarnedPoints, totalDeductions, user_id) VALUES ($1, $2, $3, $4, $5, $6, $7)`, [s.id, s.name, s.group, s.points, s.totalEarnedPoints, s.totalDeductions, userId]);
-        if (data.groups) for (const g of data.groups) await client.query(`INSERT INTO groups (id, name, user_id) VALUES ($1, $2, $3)`, [g.id, g.name, userId]);
-        if (data.rewards) for (const r of data.rewards) await client.query(`INSERT INTO rewards (id, name, cost, user_id) VALUES ($1, $2, $3, $4)`, [r.id, r.name, r.cost, userId]);
-        if (data.records) for (const rec of data.records) await client.query(`INSERT INTO records (time, studentId, studentName, change, reason, finalPoints, user_id) VALUES ($1, $2, $3, $4, $5, $6, $7)`, [rec.time, rec.studentId, rec.studentName, rec.change, rec.reason, rec.finalPoints, userId]);
-        if (data.turntablePrizes) for (const p of data.turntablePrizes) await client.query(`INSERT INTO turntablePrizes (id, text, user_id) VALUES ($1, $2, $3)`, [p.id, p.text, userId]);
-        if (data.turntableCost) await client.query(`UPDATE settings SET value = $1 WHERE key = 'turntableCost' AND user_id = $2`, [data.turntableCost, userId]);
+        // [修复] 将所有 INSERT 语句中的列名改为全小写
+        if (data.students) for (const s of data.students) {
+            await client.query(
+                `INSERT INTO students (id, name, "group", points, totalearnedpoints, totaldeductions, user_id) VALUES ($1, $2, $3, $4, $5, $6, $7)`,
+                [s.id, s.name, s.group, s.points, s.totalEarnedPoints, s.totalDeductions, userId]
+            );
+        }
+        if (data.groups) for (const g of data.groups) {
+            await client.query(`INSERT INTO groups (id, name, user_id) VALUES ($1, $2, $3)`, [g.id, g.name, userId]);
+        }
+        if (data.rewards) for (const r of data.rewards) {
+            await client.query(`INSERT INTO rewards (id, name, cost, user_id) VALUES ($1, $2, $3, $4)`, [r.id, r.name, r.cost, userId]);
+        }
+        if (data.records) for (const rec of data.records) {
+            await client.query(
+                `INSERT INTO records (time, studentid, studentname, change, reason, finalpoints, user_id) VALUES ($1, $2, $3, $4, $5, $6, $7)`,
+                [rec.time, rec.studentId, rec.studentName, rec.change, rec.reason, rec.finalPoints, userId]
+            );
+        }
+        if (data.turntablePrizes) for (const p of data.turntablePrizes) {
+            await client.query(`INSERT INTO turntablePrizes (id, text, user_id) VALUES ($1, $2, $3)`, [p.id, p.text, userId]);
+        }
+        if (data.turntableCost) {
+            // 首先尝试更新，如果不存在则插入
+            const updateResult = await client.query(`UPDATE settings SET value = $1 WHERE key = 'turntableCost' AND user_id = $2`, [data.turntableCost, userId]);
+            if (updateResult.rowCount === 0) {
+                await client.query(`INSERT INTO settings (user_id, key, value) VALUES ($1, 'turntableCost', $2)`, [userId, data.turntableCost]);
+            }
+        }
 
         await client.query('COMMIT');
         res.status(200).json({ message: '数据导入成功！' });
     } catch (err) {
         await client.query('ROLLBACK');
-        console.error('Import data transaction failed', err);
-        res.status(500).json({ error: '导入数据失败' });
+        console.error('Import data transaction failed:', err); // 这会在你的服务器日志中打印出详细的数据库错误
+        res.status(500).json({ error: '导入数据失败，请检查文件内容和格式。' });
     } finally {
         client.release();
     }
