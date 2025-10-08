@@ -319,7 +319,71 @@ apiRouter.delete('/data', async (req, res) => {
 });
 
 // ... (导入部分代码省略，因为它们比较复杂且与核心业务逻辑不同)
+apiRouter.post('/data/import', async (req, res) => {
+    const userId = req.user.userId;
+    const data = req.body;
+    
+    // 基本的数据验证
+    if (!data.students || !data.groups || !data.rewards) {
+        return res.status(400).json({ error: '导入的数据格式不正确，缺少必要的字段。' });
+    }
 
+    const client = await pool.connect();
+    try {
+        await client.query('BEGIN');
+        
+        // 1. 清空当前用户的所有旧数据
+        const tablesToClear = ['records', 'students', 'groups', 'rewards', 'turntablePrizes'];
+        for (const table of tablesToClear) {
+            await client.query(`DELETE FROM ${table} WHERE user_id = $1;`, [userId]);
+        }
+        
+        // 2. 插入新数据，并绑定到当前用户
+        if (data.students) for (const s of data.students) await client.query(`INSERT INTO students (id, name, "group", points, totalEarnedPoints, totalDeductions, user_id) VALUES ($1, $2, $3, $4, $5, $6, $7)`, [s.id, s.name, s.group, s.points, s.totalEarnedPoints, s.totalDeductions, userId]);
+        if (data.groups) for (const g of data.groups) await client.query(`INSERT INTO groups (id, name, user_id) VALUES ($1, $2, $3)`, [g.id, g.name, userId]);
+        if (data.rewards) for (const r of data.rewards) await client.query(`INSERT INTO rewards (id, name, cost, user_id) VALUES ($1, $2, $3, $4)`, [r.id, r.name, r.cost, userId]);
+        if (data.records) for (const rec of data.records) await client.query(`INSERT INTO records (time, studentId, studentName, change, reason, finalPoints, user_id) VALUES ($1, $2, $3, $4, $5, $6, $7)`, [rec.time, rec.studentId, rec.studentName, rec.change, rec.reason, rec.finalPoints, userId]);
+        if (data.turntablePrizes) for (const p of data.turntablePrizes) await client.query(`INSERT INTO turntablePrizes (id, text, user_id) VALUES ($1, $2, $3)`, [p.id, p.text, userId]);
+        if (data.turntableCost) await client.query(`UPDATE settings SET value = $1 WHERE key = 'turntableCost' AND user_id = $2`, [data.turntableCost, userId]);
+
+        await client.query('COMMIT');
+        res.status(200).json({ message: '数据导入成功！' });
+    } catch (err) {
+        await client.query('ROLLBACK');
+        console.error('Import data transaction failed', err);
+        res.status(500).json({ error: '导入数据失败' });
+    } finally {
+        client.release();
+    }
+});
+
+
+// [新增] POST /api/students/import: 专门用于从Excel导入学生列表
+apiRouter.post('/students/import', async (req, res) => {
+    const userId = req.user.userId;
+    const students = req.body;
+    if (!Array.isArray(students)) return res.status(400).json({ error: '数据格式错误' });
+
+    const client = await pool.connect();
+    try {
+        await client.query('BEGIN');
+        // 只清空当前用户的学生表
+        await client.query(`DELETE FROM students WHERE user_id = $1;`, [userId]);
+
+        for (const s of students) {
+            await client.query(`INSERT INTO students (id, name, "group", points, totalEarnedPoints, totalDeductions, user_id) VALUES ($1, $2, $3, $4, $5, $6, $7)`, 
+            [s.id, s.name, s.group || '', s.points || 0, s.totalEarnedPoints || s.points || 0, s.totalDeductions || 0, userId]);
+        }
+        await client.query('COMMIT');
+        res.status(200).json({ message: `成功导入 ${students.length} 名学生！` });
+    } catch (err) {
+        await client.query('ROLLBACK');
+        console.error('Excel import failed:', err);
+        res.status(500).json({ error: '数据库操作失败' });
+    } finally {
+        client.release();
+    }
+});
 // 3. 将受保护的业务接口挂载到 /api 路径下
 app.use('/api', apiRouter);
 
