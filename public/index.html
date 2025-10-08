@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="zh-CN">
+
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -8,13 +9,14 @@
   <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/latest/TweenMax.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/winwheel@1.0.1/dist/Winwheel.min.js"></script>
-  
+
   <script type="module" src="main.js" defer></script>
 
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@400;500;700&display=swap" rel="stylesheet">
 </head>
+
 <body>
 
   <div id="auth-container">
@@ -47,15 +49,39 @@
     </div>
   </div>
 
-  
+
 
   <div id="app-container" class="hidden">
     <header>
       <div class="stats-container">
-        <div class="stat-item"><div class="icon groups">👨‍👩‍👧‍👦</div><div><div class="label">小组数量</div><div class="value" id="stat-group-count">0</div></div></div>
-        <div class="stat-item"><div class="icon students">🎓</div><div><div class="label">学生总数</div><div class="value" id="stat-student-count">0</div></div></div>
-        <div class="stat-item"><div class="icon avg-points">⭐</div><div><div class="label">平均积分</div><div class="value" id="stat-avg-points">0</div></div></div>
-        <div class="stat-item"><div class="icon total-points">🏆</div><div><div class="label">总积分</div><div class="value" id="stat-total-points">0</div></div></div>
+        <div class="stat-item">
+          <div class="icon groups">👨‍👩‍👧‍👦</div>
+          <div>
+            <div class="label">小组数量</div>
+            <div class="value" id="stat-group-count">0</div>
+          </div>
+        </div>
+        <div class="stat-item">
+          <div class="icon students">🎓</div>
+          <div>
+            <div class="label">学生总数</div>
+            <div class="value" id="stat-student-count">0</div>
+          </div>
+        </div>
+        <div class="stat-item">
+          <div class="icon avg-points">⭐</div>
+          <div>
+            <div class="label">平均积分</div>
+            <div class="value" id="stat-avg-points">0</div>
+          </div>
+        </div>
+        <div class="stat-item">
+          <div class="icon total-points">🏆</div>
+          <div>
+            <div class="label">总积分</div>
+            <div class="value" id="stat-total-points">0</div>
+          </div>
+        </div>
       </div>
       <div style="display: flex; align-items: center;">
         <span id="current-user-email" style="margin-right: 15px; color: #6c757d;"></span>
@@ -75,7 +101,7 @@
         <li class="nav-item" data-view="print">🖨️ 打印中心</li>
       </ul>
       <div class="nav-footer">
-        <button class="btn btn-green" id="btn-export-data">📤 导出数据</button> 
+        <button class="btn btn-green" id="btn-export-data">📤 导出数据</button>
         <button class="btn btn-purple" id="btn-import-data">📥 导入数据</button>
         <input type="file" id="import-file-input" accept=".json, .xlsx, .xls" style="display:none;">
       </div>
@@ -110,87 +136,125 @@
               <ol id="leaderboard-list"></ol>
             </div>
           </div>
+          </div>
+
+      <div id="view-group-management">
+        <div class="page-header">
+          <h2>小组管理</h2><button class="btn btn-primary" id="btn-add-group">＋ 新增小组</button>
         </div>
-      
-        <div id="view-group-management">
-          <div class="page-header"><h2>小组管理</h2><button class="btn btn-primary" id="btn-add-group">＋ 新增小组</button></div>
-          <table class="styled-table" id="group-table"><thead><tr><th>小组名称</th><th>成员数量</th><th>人均积分</th><th>操作</th></tr></thead><tbody></tbody></table>
+        <table class="styled-table" id="group-table">
+          <thead>
+            <tr>
+              <th>小组名称</th>
+              <th>成员数量</th>
+              <th>人均积分</th>
+              <th>操作</th>
+            </tr>
+          </thead>
+          <tbody></tbody>
+        </table>
+      </div>
+
+      <div id="view-student-management">
+        <div class="page-header">
+          <h2>学生管理</h2><button class="btn btn-primary" id="btn-add-student">＋ 新增学生</button>
         </div>
-  
-        <div id="view-student-management">
-          <div class="page-header"><h2>学生管理</h2><button class="btn btn-primary" id="btn-add-student">＋ 新增学生</button></div>
-          <table class="styled-table" id="student-table">
-            <thead>
-              <tr>
-                <th class="sortable" data-sort="id">学生ID <span></span></th>
-                <th class="sortable" data-sort="name">姓名 <span></span></th>
-                <th>小组</th>
-                <th class="sortable" data-sort="points">积分 <span></span></th>
-                <th>操作</th>
-              </tr>
-            </thead>
-            <tbody></tbody>
-          </table>
+        <table class="styled-table" id="student-table">
+          <thead>
+            <tr>
+              <th class="sortable" data-sort="id">学生ID <span></span></th>
+              <th class="sortable" data-sort="name">姓名 <span></span></th>
+              <th>小组</th>
+              <th class="sortable" data-sort="points">积分 <span></span></th>
+              <th>操作</th>
+            </tr>
+          </thead>
+          <tbody></tbody>
+        </table>
+      </div>
+
+      <div id="view-rewards-store">
+        <div class="page-header">
+          <h2>积分商城</h2>
+          <button class="btn btn-primary" id="btn-add-reward">＋ 上架新奖品</button>
         </div>
-  
-        <div id="view-rewards-store">
+        <div class="rewards-grid" id="rewards-container"></div>
+      </div>
+
+      <div id="view-turntable">
+        <div class="page-header">
+          <h2>幸运大转盘</h2>
+        </div>
+        <div class="turntable-main-layout">
+          <div class="turntable-wrapper">
+            <canvas id="turntable-canvas" width="450" height="450"></canvas>
+            <div class="turntable-pointer"></div>
+            <button class="btn btn-primary btn-spin" id="btn-spin">开始转动</button>
+          </div>
+          <div class="turntable-controls">
+            <div class="turntable-setting">
+              <label for="turntable-cost-input">单次抽奖消耗积分:</label>
+              <input type="number" id="turntable-cost-input" value="10" min="0">
+            </div>
             <div class="page-header">
-              <h2>积分商城</h2>
-              <button class="btn btn-primary" id="btn-add-reward">＋ 上架新奖品</button>
+              <h4>奖品管理</h4>
+              <button class="btn btn-primary btn-sm" id="btn-add-turntable-prize">＋ 新增奖品</button>
             </div>
-            <div class="rewards-grid" id="rewards-container"></div>
+            <table class="styled-table" id="turntable-prize-table">
+              <thead>
+                <tr>
+                  <th>奖品名称</th>
+                  <th>操作</th>
+                </tr>
+              </thead>
+              <tbody></tbody>
+            </table>
+          </div>
         </div>
-  
-        <div id="view-turntable">
-          <div class="page-header"><h2>幸运大转盘</h2></div>
-          <div class="turntable-main-layout">
-            <div class="turntable-wrapper">
-              <canvas id="turntable-canvas" width="450" height="450"></canvas>
-              <div class="turntable-pointer"></div>
-              <button class="btn btn-primary btn-spin" id="btn-spin">开始转动</button>
-            </div>
-            <div class="turntable-controls">
-              <div class="turntable-setting">
-                <label for="turntable-cost-input">单次抽奖消耗积分:</label>
-                <input type="number" id="turntable-cost-input" value="10" min="0">
-              </div>
-              <div class="page-header">
-                <h4>奖品管理</h4>
-                <button class="btn btn-primary btn-sm" id="btn-add-turntable-prize">＋ 新增奖品</button>
-              </div>
-              <table class="styled-table" id="turntable-prize-table">
-                <thead><tr><th>奖品名称</th><th>操作</th></tr></thead>
-                <tbody></tbody>
-              </table>
+      </div>
+
+      <div id="view-record-management">
+        <div class="page-header">
+          <h2>所有积分记录</h2>
+        </div>
+        <table class="styled-table" id="record-table">
+          <thead>
+            <tr>
+              <th>时间</th>
+              <th>学生</th>
+              <th>分值变化</th>
+              <th>原因</th>
+              <th>最终积分</th>
+            </tr>
+          </thead>
+          <tbody></tbody>
+        </table>
+      </div>
+
+      <div id="view-print">
+        <div class="page-header">
+          <h2>打印中心</h2>
+        </div>
+        <div class="print-options-container">
+          <div class="print-option-card">
+            <h3>全体学生积分总览</h3>
+            <p>生成包含所有学生ID、姓名、实时积分、累计积分和扣分积分的汇总表格进行打印。</p>
+            <button class="btn btn-primary" id="btn-print-summary">🖨️ 打印总览</button>
+          </div>
+          <div class="print-option-card">
+            <h3>单个学生积分明细</h3>
+            <p>选择一个学生，生成并打印他/她的所有详细积分变动记录。</p>
+            <div class="print-selection">
+              <select id="print-student-select">
+                <option value="">-- 请选择学生 --</option>
+              </select>
+              <button class="btn btn-green" id="btn-print-details">📄 打印明细</button>
             </div>
           </div>
         </div>
-  
-        <div id="view-record-management">
-          <div class="page-header"><h2>所有积分记录</h2></div>
-          <table class="styled-table" id="record-table"><thead><tr><th>时间</th><th>学生</th><th>分值变化</th><th>原因</th><th>最终积分</th></tr></thead><tbody></tbody></table>
-        </div>
-  
-        <div id="view-print">
-          <div class="page-header"><h2>打印中心</h2></div>
-          <div class="print-options-container">
-            <div class="print-option-card">
-              <h3>全体学生积分总览</h3>
-              <p>生成包含所有学生ID、姓名、实时积分、累计积分和扣分积分的汇总表格进行打印。</p>
-              <button class="btn btn-primary" id="btn-print-summary">🖨️ 打印总览</button>
-            </div>
-            <div class="print-option-card">
-              <h3>单个学生积分明细</h3>
-              <p>选择一个学生，生成并打印他/她的所有详细积分变动记录。</p>
-              <div class="print-selection">
-                <select id="print-student-select"><option value="">-- 请选择学生 --</option></select>
-                <button class="btn btn-green" id="btn-print-details">📄 打印明细</button>
-              </div>
-            </div>
-          </div>
-        </div>
+      </div>
     </main>
-  
+
     <div id="notification-container"></div>
     <div id="confirm-modal" class="modal">
       <div class="modal-content">
@@ -205,163 +269,193 @@
         </div>
       </div>
     </div>
-  
+
     <div id="points-modal" class="modal">
-        <div class="modal-content">
-          <div class="modal-header"><h2>调整学生积分</h2><span class="close-btn">&times;</span></div>
-          <form id="points-form">
-            <p>正在为学生: <strong id="points-student-name"></strong> 调整积分</p>
-            <input type="hidden" id="points-student-id-input">
-            <label for="points-change-amount">增减分数 (正数加分, 负数扣分):</label>
-            <input type="number" id="points-change-amount" required placeholder="例如: 5 或 -3">
-            <label for="points-change-reason">原因 (将记录在日志中):</label>
-            <input type="text" id="points-change-reason" required placeholder="例如：上课积极回答问题">
-            <div class="form-actions"><button type="submit" class="btn btn-primary">确认调整</button></div>
-          </form>
+      <div class="modal-content">
+        <div class="modal-header">
+          <h2>调整学生积分</h2><span class="close-btn">&times;</span>
         </div>
+        <form id="points-form">
+          <p>正在为学生: <strong id="points-student-name"></strong> 调整积分</p>
+          <input type="hidden" id="points-student-id-input">
+          <label for="points-change-amount">增减分数 (正数加分, 负数扣分):</label>
+          <input type="number" id="points-change-amount" required placeholder="例如: 5 或 -3">
+          <label for="points-change-reason">原因 (将记录在日志中):</label>
+          <input type="text" id="points-change-reason" required placeholder="例如：上课积极回答问题">
+          <div class="form-actions"><button type="submit" class="btn btn-primary">确认调整</button></div>
+        </form>
+      </div>
     </div>
-    
+
     <div id="student-modal" class="modal">
-        <div class="modal-content">
-          <div class="modal-header"><h2 id="student-modal-title">管理学生</h2><span class="close-btn">&times;</span></div>
-          <form id="student-form">
-            <input type="hidden" id="student-id">
-            <label for="student-id-display">学生ID:</label>
-            <input type="text" id="student-id-display" required>
-            <label for="student-name">姓名:</label>
-            <input type="text" id="student-name" required>
-            <label for="student-group">小组:</label>
-            <select id="student-group"></select>
-            <div class="form-actions"><button type="submit" class="btn btn-primary">保存</button></div>
-          </form>
+      <div class="modal-content">
+        <div class="modal-header">
+          <h2 id="student-modal-title">管理学生</h2><span class="close-btn">&times;</span>
         </div>
+        <form id="student-form">
+          <input type="hidden" id="student-id">
+          <label for="student-id-display">学生ID:</label>
+          <input type="text" id="student-id-display" required>
+          <label for="student-name">姓名:</label>
+          <input type="text" id="student-name" required>
+          <label for="student-group">小组:</label>
+          <select id="student-group"></select>
+          <div class="form-actions"><button type="submit" class="btn btn-primary">保存</button></div>
+        </form>
+      </div>
     </div>
-      
+
     <div id="group-modal" class="modal">
-        <div class="modal-content">
-          <div class="modal-header"><h2>管理小组</h2><span class="close-btn">&times;</span></div>
-          <form id="group-form">
-            <input type="hidden" id="group-id">
-            <label for="group-name">小组名称:</label>
-            <input type="text" id="group-name" required>
-            <div class="form-actions"><button type="submit" class="btn btn-primary">保存</button></div>
-          </form>
+      <div class="modal-content">
+        <div class="modal-header">
+          <h2>管理小组</h2><span class="close-btn">&times;</span>
         </div>
+        <form id="group-form">
+          <input type="hidden" id="group-id">
+          <label for="group-name">小组名称:</label>
+          <input type="text" id="group-name" required>
+          <div class="form-actions"><button type="submit" class="btn btn-primary">保存</button></div>
+        </form>
+      </div>
     </div>
-    
+
     <div id="bulk-group-modal" class="modal">
-        <div class="modal-content">
-          <div class="modal-header"><h2 id="bulk-group-modal-title">批量修改小组成员</h2><span class="close-btn">&times;</span></div>
-          <form id="bulk-group-form">
-            <p>正在为小组: <strong id="bulk-group-name"></strong> 管理成员</p>
-            <input type="hidden" id="bulk-group-id">
-            <div class="student-selection-container">
-              <div class="student-list-box">
-                <strong>未分组学生</strong>
-                <ul id="unassigned-students-list"></ul>
-              </div>
-              <div class="student-list-box">
-                <strong>小组成员</strong>
-                <ul id="assigned-students-list"></ul>
-              </div>
-            </div>
-            <div class="form-actions"><button type="submit" class="btn btn-primary">保存更改</button></div>
-          </form>
+      <div class="modal-content">
+        <div class="modal-header">
+          <h2 id="bulk-group-modal-title">批量修改小组成员</h2><span class="close-btn">&times;</span>
         </div>
+        <form id="bulk-group-form">
+          <p>正在为小组: <strong id="bulk-group-name"></strong> 管理成员</p>
+          <input type="hidden" id="bulk-group-id">
+          <div class="student-selection-container">
+            <div class="student-list-box">
+              <strong>未分组学生</strong>
+              <ul id="unassigned-students-list"></ul>
+            </div>
+            <div class="student-list-box">
+              <strong>小组成员</strong>
+              <ul id="assigned-students-list"></ul>
+            </div>
+          </div>
+          <div class="form-actions"><button type="submit" class="btn btn-primary">保存更改</button></div>
+        </form>
+      </div>
     </div>
-      
+
     <div id="reward-modal" class="modal">
-        <div class="modal-content">
-          <div class="modal-header"><h2 id="reward-modal-title">管理奖品</h2><span class="close-btn">&times;</span></div>
-          <form id="reward-form">
-            <input type="hidden" id="reward-id">
-            <label for="reward-name">奖品名称:</label>
-            <input type="text" id="reward-name" required>
-            <label for="reward-cost">所需积分:</label>
-            <input type="number" id="reward-cost" required min="1">
-            <div class="form-actions"><button type="submit" class="btn btn-primary">保存奖品</button></div>
-          </form>
+      <div class="modal-content">
+        <div class="modal-header">
+          <h2 id="reward-modal-title">管理奖品</h2><span class="close-btn">&times;</span>
         </div>
+        <form id="reward-form">
+          <input type="hidden" id="reward-id">
+          <label for="reward-name">奖品名称:</label>
+          <input type="text" id="reward-name" required>
+          <label for="reward-cost">所需积分:</label>
+          <input type="number" id="reward-cost" required min="1">
+          <div class="form-actions"><button type="submit" class="btn btn-primary">保存奖品</button></div>
+        </form>
+      </div>
     </div>
-    
+
     <div id="redeem-modal" class="modal">
-        <div class="modal-content">
-          <div class="modal-header"><h2>兑换奖品</h2><span class="close-btn">&times;</span></div>
-          <form id="redeem-form">
-            <input type="hidden" id="redeem-reward-id">
-            <div class="redeem-info">
-                <p><strong>奖品:</strong> <span id="redeem-reward-name"></span></p>
-                <p><strong>花费:</strong> <span id="redeem-reward-cost"></span> 积分</p>
-            </div>
-            <label for="redeem-student-select">选择兑换的学生:</label>
-            <select id="redeem-student-select" required></select>
-            <div class="form-actions"><button type="submit" class="btn btn-primary">确认兑换</button></div>
-          </form>
+      <div class="modal-content">
+        <div class="modal-header">
+          <h2>兑换奖品</h2><span class="close-btn">&times;</span>
         </div>
+        <form id="redeem-form">
+          <input type="hidden" id="redeem-reward-id">
+          <div class="redeem-info">
+            <p><strong>奖品:</strong> <span id="redeem-reward-name"></span></p>
+            <p><strong>花费:</strong> <span id="redeem-reward-cost"></span> 积分</p>
+          </div>
+          <label for="redeem-student-select">选择兑换的学生:</label>
+          <select id="redeem-student-select" required></select>
+          <div class="form-actions"><button type="submit" class="btn btn-primary">确认兑换</button></div>
+        </form>
+      </div>
     </div>
-    
+
     <div id="group-points-modal" class="modal">
-        <div class="modal-content">
-          <div class="modal-header"><h2>为小组加分</h2><span class="close-btn">&times;</span></div>
-          <form id="group-points-form">
-            <label for="group-points-select">选择小组:</label>
-            <select id="group-points-select" required></select>
-            <label for="group-points-amount">增减分数 (正数加分, 负数扣分):</label>
-            <input type="number" id="group-points-amount" required>
-            <label for="group-points-reason">原因:</label>
-            <input type="text" id="group-points-reason" required placeholder="例如：活动奖状、表现优秀等">
-            <div class="form-actions"><button type="submit" class="btn btn-primary">确认加分</button></div>
-          </form>
+      <div class="modal-content">
+        <div class="modal-header">
+          <h2>为小组加分</h2><span class="close-btn">&times;</span>
         </div>
+        <form id="group-points-form">
+          <label for="group-points-select">选择小组:</label>
+          <select id="group-points-select" required></select>
+          <label for="group-points-amount">增减分数 (正数加分, 负数扣分):</label>
+          <input type="number" id="group-points-amount" required>
+          <label for="group-points-reason">原因:</label>
+          <input type="text" id="group-points-reason" required placeholder="例如：活动奖状、表现优秀等">
+          <div class="form-actions"><button type="submit" class="btn btn-primary">确认加分</button></div>
+        </form>
+      </div>
     </div>
-    
+
     <div id="all-points-modal" class="modal">
-        <div class="modal-content">
-          <div class="modal-header"><h2>为全班加/扣分</h2><span class="close-btn">&times;</span></div>
-          <form id="all-points-form">
-            <label for="all-points-amount">增减分数 (正数加分, 负数扣分):</label>
-            <input type="number" id="all-points-amount" required>
-            <label for="all-points-reason">原因:</label>
-            <input type="text" id="all-points-reason" required placeholder="例如：班级集体奖励等">
-            <div class="form-actions"><button type="submit" class="btn btn-primary">确认操作</button></div>
-          </form>
+      <div class="modal-content">
+        <div class="modal-header">
+          <h2>为全班加/扣分</h2><span class="close-btn">&times;</span>
         </div>
+        <form id="all-points-form">
+          <label for="all-points-amount">增减分数 (正数加分, 负数扣分):</label>
+          <input type="number" id="all-points-amount" required>
+          <label for="all-points-reason">原因:</label>
+          <input type="text" id="all-points-reason" required placeholder="例如：班级集体奖励等">
+          <div class="form-actions"><button type="submit" class="btn btn-primary">确认操作</button></div>
+        </form>
+      </div>
     </div>
-    
+
     <div id="turntable-prize-modal" class="modal">
-        <div class="modal-content">
-          <div class="modal-header"><h2 id="turntable-prize-modal-title">管理转盘奖品</h2><span class="close-btn">&times;</span></div>
-          <form id="turntable-prize-form">
-            <input type="hidden" id="turntable-prize-id">
-            <label for="turntable-prize-name">奖品名称:</label>
-            <input type="text" id="turntable-prize-name" required>
-            <div class="form-actions"><button type="submit" class="btn btn-primary">保存奖品</button></div>
-          </form>
+      <div class="modal-content">
+        <div class="modal-header">
+          <h2 id="turntable-prize-modal-title">管理转盘奖品</h2><span class="close-btn">&times;</span>
         </div>
+        <form id="turntable-prize-form">
+          <input type="hidden" id="turntable-prize-id">
+          <label for="turntable-prize-name">奖品名称:</label>
+          <input type="text" id="turntable-prize-name" required>
+          <div class="form-actions"><button type="submit" class="btn btn-primary">保存奖品</button></div>
+        </form>
+      </div>
     </div>
-      
+
     <div id="spin-select-modal" class="modal">
-        <div class="modal-content">
-          <div class="modal-header"><h2>选择抽奖学生</h2><span class="close-btn">&times;</span></div>
-          <form id="spin-select-form">
-            <p>本次抽奖将消耗 <strong id="spin-cost-display"></strong> 积分。</p>
-            <label for="spin-student-select">选择学生:</label>
-            <select id="spin-student-select" required></select>
-            <div class="form-actions"><button type="submit" class="btn btn-primary">确认并抽奖</button></div>
-          </form>
+      <div class="modal-content">
+        <div class="modal-header">
+          <h2>选择抽奖学生</h2><span class="close-btn">&times;</span>
         </div>
+        <form id="spin-select-form">
+          <p>本次抽奖将消耗 <strong id="spin-cost-display"></strong> 积分。</p>
+          <label for="spin-student-select">选择学生:</label>
+          <select id="spin-student-select" required></select>
+          <div class="form-actions"><button type="submit" class="btn btn-primary">确认并抽奖</button></div>
+        </form>
+      </div>
     </div>
-    
+
     <div id="individual-record-modal" class="modal">
-        <div class="modal-content">
-          <div class="modal-header"><h2 id="individual-record-modal-title">学生积分记录</h2><span class="close-btn">&times;</span></div>
-          <table class="styled-table" id="individual-record-table">
-            <thead><tr><th>时间</th><th>分值变化</th><th>原因</th><th>最终积分</th></tr></thead>
-            <tbody id="individual-record-table-body"></tbody>
-          </table>
+      <div class="modal-content">
+        <div class="modal-header">
+          <h2 id="individual-record-modal-title">学生积分记录</h2><span class="close-btn">&times;</span>
         </div>
+        <table class="styled-table" id="individual-record-table">
+          <thead>
+            <tr>
+              <th>时间</th>
+              <th>分值变化</th>
+              <th>原因</th>
+              <th>最终积分</th>
+            </tr>
+          </thead>
+          <tbody id="individual-record-table-body"></tbody>
+        </table>
+      </div>
     </div>
   </div>
 
 </body>
+
 </html>
