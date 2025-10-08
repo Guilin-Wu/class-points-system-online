@@ -1,10 +1,7 @@
-// public/main.js (最终完整版)
-
 import { state, appStatus } from './modules/state.js';
 import { DOMElements } from './modules/dom.js';
 import * as ui from './modules/ui.js';
 import * as api from './modules/api.js';
-// [修复] 导入所有需要的渲染函数
 import { renderApp, renderIndividualRecords, renderBulkGroupEditor, renderPrintStudentSelect } from './modules/render.js';
 import { createHandlers } from './modules/handlers.js';
 import { createPrint } from './modules/print.js';
@@ -17,11 +14,9 @@ const App = {
     dom: DOMElements,
     ui,
     api,
-    
-    // 主渲染函数
-    render: renderApp,
 
-    // [修复] 创建一个对象专门存放需要独立调用的渲染函数
+    // 渲染函数
+    render: renderApp,
     renderers: {
         renderIndividualRecords,
         renderBulkGroupEditor,
@@ -35,9 +30,13 @@ const App = {
             this.dom.currentUserEmail.textContent = user.email;
         }
 
+        // 创建上下文相关的模块
         this.print = createPrint(this);
         this.handlers = createHandlers(this);
-        this.setupEventListeners();
+
+        // [修复] 只在这里调用主应用的事件监听设置
+        this.setupAppEventListeners();
+
         await this.loadData();
     },
 
@@ -54,8 +53,66 @@ const App = {
         }
     },
 
-    setupEventListeners() {
-        // Auth Listeners
+    // [修复] 拆分出专门用于主应用的事件监听函数
+    setupAppEventListeners() {
+        this.dom.navItems.forEach(i => i.addEventListener('click', e => this.handlers.handleNavClick(e)));
+        document.querySelectorAll('.modal .close-btn').forEach(b => b.addEventListener('click', e => this.ui.closeModal(e.target.closest('.modal'))));
+
+        // Forms
+        this.dom.studentForm.addEventListener('submit', e => this.handlers.handleStudentFormSubmit(e));
+        this.dom.groupForm.addEventListener('submit', e => this.handlers.handleGroupFormSubmit(e));
+        this.dom.rewardForm.addEventListener('submit', e => this.handlers.handleRewardFormSubmit(e));
+        this.dom.redeemForm.addEventListener('submit', e => this.handlers.handleRedeemFormSubmit(e));
+        this.dom.groupPointsForm.addEventListener('submit', e => this.handlers.handleGroupPointsFormSubmit(e));
+        this.dom.pointsForm.addEventListener('submit', e => this.handlers.handlePointsFormSubmit(e));
+        this.dom.allPointsForm.addEventListener('submit', e => this.handlers.handleAllPointsFormSubmit(e));
+        this.dom.turntablePrizeForm.addEventListener('submit', e => this.handlers.handleTurntablePrizeFormSubmit(e));
+        this.dom.spinSelectForm.addEventListener('submit', e => this.handlers.handleSpinSelectFormSubmit(e));
+        this.dom.bulkGroupForm.addEventListener('submit', e => this.handlers.handleBulkGroupFormSubmit(e));
+
+        // Buttons
+        document.getElementById('btn-add-student').addEventListener('click', () => this.handlers.openStudentModal());
+        document.getElementById('btn-add-group').addEventListener('click', () => this.handlers.openGroupModal());
+        document.getElementById('btn-add-reward').addEventListener('click', () => this.handlers.openRewardModal());
+        document.getElementById('btn-add-group-points').addEventListener('click', () => this.handlers.openGroupPointsModal());
+        document.getElementById('btn-add-all-points').addEventListener('click', () => this.handlers.openAllPointsModal());
+        document.getElementById('btn-add-turntable-prize').addEventListener('click', () => this.handlers.openTurntablePrizeModal());
+        document.getElementById('btn-spin').addEventListener('click', () => this.handlers.openSpinSelectModal());
+
+        // Data I/O
+        document.getElementById('btn-export-data').addEventListener('click', () => this.exportData());
+        document.getElementById('btn-import-data').addEventListener('click', () => this.dom.importFileInput.click());
+        this.dom.importFileInput.addEventListener('change', e => this.importData(e));
+
+        // Dynamic content clicks
+        this.dom.studentCardsContainer.addEventListener('click', e => this.handlers.handleCardClick(e));
+        this.dom.rewardsContainer.addEventListener('click', e => this.handlers.handleRewardCardClick(e));
+        this.dom.studentTableBody.addEventListener('click', e => this.handlers.handleStudentTableClick(e));
+        this.dom.studentTableHeader.addEventListener('click', e => this.handlers.handleSortClick(e));
+        this.dom.groupTableBody.addEventListener('click', e => this.handlers.handleGroupTableClick(e));
+        this.dom.unassignedStudentsList.addEventListener('click', e => this.handlers.handleStudentListItemClick(e, 'unassigned'));
+        this.dom.assignedStudentsList.addEventListener('click', e => this.handlers.handleStudentListItemClick(e, 'assigned'));
+        this.dom.leaderboardToggle.addEventListener('click', e => this.handlers.handleLeaderboardToggle(e));
+        this.dom.turntablePrizeTableBody.addEventListener('click', e => this.handlers.handleTurntablePrizeTableClick(e));
+
+        // Other controls
+        this.dom.searchInput.addEventListener('input', e => this.renderDashboard(this.dom.searchInput.value));
+        this.dom.dashboardSortControls.addEventListener('click', e => this.handlers.handleDashboardSortClick(e));
+        this.dom.turntableCostInput.addEventListener('change', async e => {
+            const cost = parseInt(e.target.value) || 0;
+            try {
+                await this.api.updateTurntableCost(cost);
+                this.state.turntableCost = cost;
+            } catch (err) { this.ui.showNotification(err.message, 'error'); }
+        });
+
+        // Print
+        this.dom.btnPrintSummary.addEventListener('click', () => this.print.summary());
+        this.dom.btnPrintDetails.addEventListener('click', () => this.print.details());
+    },
+
+    // [修复] 拆分出专门用于认证界面的事件监听函数
+    setupAuthEventListeners() {
         this.dom.loginForm.addEventListener('submit', async (e) => {
             e.preventDefault();
             this.dom.loginError.textContent = '';
@@ -95,64 +152,6 @@ const App = {
         });
 
         this.dom.logoutBtn.addEventListener('click', this.api.logout);
-
-        // --- App Event Listeners ---
-        this.dom.navItems.forEach(i => i.addEventListener('click', e => this.handlers.handleNavClick(e)));
-        document.querySelectorAll('.modal .close-btn').forEach(b => b.addEventListener('click', e => this.ui.closeModal(e.target.closest('.modal'))));
-        
-        // Forms
-        this.dom.studentForm.addEventListener('submit', e => this.handlers.handleStudentFormSubmit(e));
-        this.dom.groupForm.addEventListener('submit', e => this.handlers.handleGroupFormSubmit(e));
-        this.dom.rewardForm.addEventListener('submit', e => this.handlers.handleRewardFormSubmit(e));
-        this.dom.redeemForm.addEventListener('submit', e => this.handlers.handleRedeemFormSubmit(e));
-        this.dom.groupPointsForm.addEventListener('submit', e => this.handlers.handleGroupPointsFormSubmit(e));
-        this.dom.pointsForm.addEventListener('submit', e => this.handlers.handlePointsFormSubmit(e));
-        this.dom.allPointsForm.addEventListener('submit', e => this.handlers.handleAllPointsFormSubmit(e));
-        this.dom.turntablePrizeForm.addEventListener('submit', e => this.handlers.handleTurntablePrizeFormSubmit(e));
-        this.dom.spinSelectForm.addEventListener('submit', e => this.handlers.handleSpinSelectFormSubmit(e));
-        this.dom.bulkGroupForm.addEventListener('submit', e => this.handlers.handleBulkGroupFormSubmit(e));
-
-        // Buttons
-        document.getElementById('btn-add-student').addEventListener('click', () => this.handlers.openStudentModal());
-        document.getElementById('btn-add-group').addEventListener('click', () => this.handlers.openGroupModal());
-        document.getElementById('btn-add-reward').addEventListener('click', () => this.handlers.openRewardModal());
-        document.getElementById('btn-add-group-points').addEventListener('click', () => this.handlers.openGroupPointsModal());
-        document.getElementById('btn-add-all-points').addEventListener('click', () => this.handlers.openAllPointsModal());
-        document.getElementById('btn-add-turntable-prize').addEventListener('click', () => this.handlers.openTurntablePrizeModal());
-        document.getElementById('btn-spin').addEventListener('click', () => this.handlers.openSpinSelectModal());
-        
-        // Data I/O
-        document.getElementById('btn-export-data').addEventListener('click', () => this.exportData());
-        document.getElementById('btn-import-data').addEventListener('click', () => this.dom.importFileInput.click());
-        this.dom.importFileInput.addEventListener('change', e => this.importData(e));
-
-        // Dynamic content clicks
-        this.dom.studentCardsContainer.addEventListener('click', e => this.handlers.handleCardClick(e));
-        this.dom.rewardsContainer.addEventListener('click', e => this.handlers.handleRewardCardClick(e));
-        this.dom.studentTableBody.addEventListener('click', e => this.handlers.handleStudentTableClick(e));
-        this.dom.studentTableHeader.addEventListener('click', e => this.handlers.handleSortClick(e));
-        this.dom.groupTableBody.addEventListener('click', e => this.handlers.handleGroupTableClick(e));
-        this.dom.unassignedStudentsList.addEventListener('click', e => this.handlers.handleStudentListItemClick(e, 'unassigned'));
-        this.dom.assignedStudentsList.addEventListener('click', e => this.handlers.handleStudentListItemClick(e, 'assigned'));
-        this.dom.leaderboardToggle.addEventListener('click', e => this.handlers.handleLeaderboardToggle(e));
-        this.dom.turntablePrizeTableBody.addEventListener('click', e => this.handlers.handleTurntablePrizeTableClick(e));
-        
-        // Other controls
-        this.dom.searchInput.addEventListener('input', e => this.render.renderDashboard(e.target.value));
-        this.dom.dashboardSortControls.addEventListener('click', e => this.handlers.handleDashboardSortClick(e));
-        this.dom.turntableCostInput.addEventListener('change', async e => {
-            const cost = parseInt(e.target.value) || 0;
-            try {
-                await this.api.updateTurntableCost(cost);
-                this.state.turntableCost = cost;
-            } catch (err) {
-                this.ui.showNotification(err.message, 'error');
-            }
-        });
-
-        // Print
-        this.dom.btnPrintSummary.addEventListener('click', () => this.print.summary());
-        this.dom.btnPrintDetails.addEventListener('click', () => this.print.details());
     },
 
     // --- Data Import/Export ---
@@ -169,12 +168,11 @@ const App = {
         const blob = new Blob([dataStr], { type: 'application/json' });
         const url = URL.createObjectURL(blob);
         const a = document.createElement('a');
-        a.href = url;
-        a.download = `class_data_${new Date().toISOString().slice(0, 10)}.json`;
+        a.href = url; a.download = `class_data_${new Date().toISOString().slice(0, 10)}.json`;
         a.click();
         URL.revokeObjectURL(url);
     },
-    
+
     importData(e) {
         const file = e.target.files[0];
         if (!file) return;
@@ -191,7 +189,7 @@ const App = {
                     await this.api.importJsonData(data);
                     this.ui.showNotification('JSON数据完整导入成功！');
                     await this.loadData();
-                } catch (err) { this.ui.showNotification(`导入失败: ${err.message}`, 'error'); } 
+                } catch (err) { this.ui.showNotification(`导入失败: ${err.message}`, 'error'); }
                 finally { clearFileInput(); }
             };
             reader.readAsText(file);
@@ -207,7 +205,7 @@ const App = {
                     const result = await this.api.importStudentsFromExcel(excelData);
                     this.ui.showNotification(result.message || '学生导入成功');
                     await this.loadData();
-                } catch (err) { this.ui.showNotification(`导入失败: ${err.message}`, 'error'); } 
+                } catch (err) { this.ui.showNotification(`导入失败: ${err.message}`, 'error'); }
                 finally { clearFileInput(); }
             };
             reader.readAsArrayBuffer(file);
@@ -227,10 +225,11 @@ const App = {
 
 // --- Application Start ---
 // 总是先设置认证相关的监听器
-App.setupEventListeners();
+App.setupAuthEventListeners();
 
 // 然后检查是否存在token
 if (localStorage.getItem('authToken')) {
+    // 如果已登录，直接运行主程序
     App.run();
 }
 // 如果没有token，什么也不做，用户会停留在默认显示的登录界面
