@@ -321,12 +321,14 @@ apiRouter.delete('/data', async (req, res) => {
 
 // server.js (找到并替换这个接口)
 
+// server.js (找到並替換這個接口)
+
 apiRouter.post('/data/import', async (req, res) => {
     const userId = req.user.userId;
     const data = req.body;
     
     if (!data.students || !data.groups || !data.rewards) {
-        return res.status(400).json({ error: '导入的数据格式不正确，缺少必要的字段。' });
+        return res.status(400).json({ error: '导入数据的格式不正确，缺少必要的字段。' });
     }
 
     const client = await pool.connect();
@@ -338,11 +340,12 @@ apiRouter.post('/data/import', async (req, res) => {
             await client.query(`DELETE FROM ${table} WHERE user_id = $1;`, [userId]);
         }
         
-        // [修复] 将所有 INSERT 语句中的列名改为全小写
         if (data.students) for (const s of data.students) {
             await client.query(
+                // [修復] 使用全小寫的列名來匹配數據庫
                 `INSERT INTO students (id, name, "group", points, totalearnedpoints, totaldeductions, user_id) VALUES ($1, $2, $3, $4, $5, $6, $7)`,
-                [s.id, s.name, s.group, s.points, s.totalEarnedPoints, s.totalDeductions, userId]
+                // [修復] 從 JSON 中讀取全小寫的鍵
+                [s.id, s.name, s.group, s.points, s.totalearnedpoints, s.totaldeductions, userId]
             );
         }
         if (data.groups) for (const g of data.groups) {
@@ -353,15 +356,16 @@ apiRouter.post('/data/import', async (req, res) => {
         }
         if (data.records) for (const rec of data.records) {
             await client.query(
+                // [修復] 使用全小寫的列名來匹配數據庫
                 `INSERT INTO records (time, studentid, studentname, change, reason, finalpoints, user_id) VALUES ($1, $2, $3, $4, $5, $6, $7)`,
-                [rec.time, rec.studentId, rec.studentName, rec.change, rec.reason, rec.finalPoints, userId]
+                // [修復] 從 JSON 中讀取全小寫的鍵
+                [rec.time, rec.studentid, rec.studentname, rec.change, rec.reason, rec.finalpoints, userId]
             );
         }
         if (data.turntablePrizes) for (const p of data.turntablePrizes) {
             await client.query(`INSERT INTO turntablePrizes (id, text, user_id) VALUES ($1, $2, $3)`, [p.id, p.text, userId]);
         }
         if (data.turntableCost) {
-            // 首先尝试更新，如果不存在则插入
             const updateResult = await client.query(`UPDATE settings SET value = $1 WHERE key = 'turntableCost' AND user_id = $2`, [data.turntableCost, userId]);
             if (updateResult.rowCount === 0) {
                 await client.query(`INSERT INTO settings (user_id, key, value) VALUES ($1, 'turntableCost', $2)`, [userId, data.turntableCost]);
@@ -372,7 +376,7 @@ apiRouter.post('/data/import', async (req, res) => {
         res.status(200).json({ message: '数据导入成功！' });
     } catch (err) {
         await client.query('ROLLBACK');
-        console.error('Import data transaction failed:', err); // 这会在你的服务器日志中打印出详细的数据库错误
+        console.error('Import data transaction failed:', err);
         res.status(500).json({ error: '导入数据失败，请检查文件内容和格式。' });
     } finally {
         client.release();
