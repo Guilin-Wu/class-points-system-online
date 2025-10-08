@@ -1,9 +1,8 @@
-// server.js (最终多用户安全版)
 const express = require('express');
 const cors = require('cors');
 const { pool, initializeDatabase } = require('./database.js');
-const authRoutes = require('./auth.js'); // 引入认证路由
-const { authenticateToken } = require('./middleware.js'); // 引入认证中间件
+const authRoutes = require('./auth.js');
+const { authenticateToken } = require('./middleware.js');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -14,35 +13,26 @@ app.use(cors());
 app.use(express.json());
 app.use(express.static('public'));
 
-// --- API Endpoints ---
-
-// 1. 认证接口 (无需保护，公开访问)
 app.use('/api/auth', authRoutes);
 
-// 2. 创建一个新的路由器实例，用于存放所有需要被保护的业务接口
 const apiRouter = express.Router();
-apiRouter.use(authenticateToken); // 将“门卫”中间件应用到这个路由器上的所有接口
+apiRouter.use(authenticateToken);
 
-// --- 辅助函数：积分调整核心逻辑 ---
 async function adjustStudentPoints(client, studentId, delta, reason, userId) {
     const studentResult = await client.query(`SELECT * FROM students WHERE id = $1 AND user_id = $2`, [studentId, userId]);
     if (studentResult.rows.length === 0) {
         throw new Error(`未找到ID为 ${studentId} 的学生`);
     }
     const student = studentResult.rows[0];
-
     const newPoints = student.points + delta;
     let newTotalEarned = student.totalearnedpoints;
     let newTotalDeductions = student.totaldeductions;
-
     if (delta > 0) newTotalEarned += delta;
     if (delta < 0 && !reason.includes('兑换') && !reason.includes('抽奖')) newTotalDeductions += Math.abs(delta);
-
     await client.query(
         `UPDATE students SET points = $1, totalEarnedPoints = $2, totalDeductions = $3 WHERE id = $4 AND user_id = $5`,
         [newPoints, newTotalEarned, newTotalDeductions, studentId, userId]
     );
-
     const changeText = delta > 0 ? `+${delta}` : `${delta}`;
     await client.query(
         `INSERT INTO records (time, studentId, studentName, change, reason, finalPoints, user_id) VALUES ($1, $2, $3, $4, $5, $6, $7)`,
@@ -50,10 +40,6 @@ async function adjustStudentPoints(client, studentId, delta, reason, userId) {
     );
 }
 
-
-// --- 所有业务接口都挂载到 apiRouter 上 ---
-
-// GET /api/data: 获取当前用户的所有数据
 apiRouter.get('/data', async (req, res) => {
     const userId = req.user.userId;
     try {
@@ -72,12 +58,10 @@ apiRouter.get('/data', async (req, res) => {
             turntableCost: tc.rows.length ? parseInt(tc.rows[0].value) : 10
         });
     } catch (err) {
-        console.error('Error fetching all data:', err);
         res.status(500).json({ error: '获取数据失败' });
     }
 });
 
-// --- 学生管理 (Students) ---
 apiRouter.post('/students', async (req, res) => {
     const userId = req.user.userId;
     const { id, name, group } = req.body;
